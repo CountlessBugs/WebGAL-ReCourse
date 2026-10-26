@@ -42,6 +42,7 @@ export interface IOptionData {
   uiSeVolume: number; // 用户界面音效音量
   slPage: number; // 存读档界面所在页面
   textboxFont: number;
+  recourseFontVersion?: number;
   textboxOpacity: number;
   language: language;
   voiceInterruption: voiceOption; // 是否中断语音

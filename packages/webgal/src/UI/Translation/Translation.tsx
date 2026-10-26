@@ -10,7 +10,7 @@ export default function Translation() {
 
   const [isShowSelectLanguage, setIsShowSelectLanguage] = useState(false);
   const globalVar = useSelector((state: RootState) => state.userData.globalGameVar);
-  const defaultLang = globalVar['Default_Language'] ?? '';
+  const defaultLang = globalVar['Default_Language'] ?? 'zh_CN';
 
   const setLang = (langId: language) => {
     setIsShowSelectLanguage(false);

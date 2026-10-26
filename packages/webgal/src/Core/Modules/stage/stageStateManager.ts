@@ -406,7 +406,7 @@ export class StageStateManager {
     };
   }
 
-  private notify() {
+  public notify() {
     const stageState = this.viewStageState;
     this.listeners.forEach((listener) => listener(stageState));
   }

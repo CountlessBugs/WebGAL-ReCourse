@@ -39,6 +39,7 @@ export function loadGameFromStageData(stageData: ISaveData) {
       loadFile.sceneData.sceneUrl,
     );
     WebGAL.sceneManager.settledScenes.add(WebGAL.sceneManager.sceneData.currentScene.sceneUrl); // 放入已加载场景列表，避免递归加载相同场景
+    stageStateManager.notify();
   });
   WebGAL.sceneManager.sceneData.currentSentenceId = loadFile.sceneData.currentSentenceId;
   WebGAL.sceneManager.sceneData.sceneStack = cloneDeep(loadFile.sceneData.sceneStack);

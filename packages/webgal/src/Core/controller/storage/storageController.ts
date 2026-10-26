@@ -3,6 +3,7 @@ import { IUserData } from '@/store/userDataInterface';
 import { logger } from '../../util/logger';
 import { webgalStore } from '@/store/store';
 import { initState, resetUserData } from '@/store/userDataReducer';
+import { restoreCourseFont } from '@/recourse/fonts';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { WebGAL } from '@/Core/WebGAL';
@@ -110,7 +111,7 @@ function normalizeUserData(userData: Partial<IUserData>): IUserData {
     globalGameVar: isObject(userData.globalGameVar) ? userData.globalGameVar : {},
     optionData: {
       ...defaultUserData.optionData,
-      ...optionData,
+      ...restoreCourseFont(optionData),
     },
     appreciationData: {
       ...defaultUserData.appreciationData,
