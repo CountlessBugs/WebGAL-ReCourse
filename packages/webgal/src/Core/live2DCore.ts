@@ -66,7 +66,7 @@ export class Live2DCore {
   }
 
   public constructor() {
-    this.ready = this.initLive2D();
+    this.ready = window.recoursePreviewOrigin ? Promise.resolve() : this.initLive2D();
   }
 
   public initLive2D() {

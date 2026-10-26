@@ -1,14 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
-import { fullScreenOption } from '@/store/userDataInterface';
 import { setMenuPanelTag, setVisibility } from '@/store/GUIReducer';
 import { MenuPanelTag } from '@/store/guiInterface';
 import useTrans from '@/hooks/useTrans';
 import useSoundEffect from '@/hooks/useSoundEffect';
 import useApplyStyle from '@/hooks/useApplyStyle';
-import { keyboard } from '@/hooks/useHotkey';
 import useConfigData from '@/hooks/useConfigData';
-import { playBgm } from '@/Core/controller/stage/playBgm';
 import { continueGame, startGame } from '@/Core/controller/gamePlay/startContinueGame';
 import { showGlogalDialog } from '../GlobalDialog/GlobalDialog';
 import styles from './title.module.scss';
@@ -19,7 +16,6 @@ export default function Title() {
   const userSaveData = useSelector((state: RootState) => state.saveData);
   const GUIState = useSelector((state: RootState) => state.GUI);
   const dispatch = useDispatch();
-  const fullScreen = userDataState.optionData.fullScreen;
   const background = GUIState.titleBg;
   const showBackground = background === '' ? 'rgba(0,0,0,1)' : `url("${background}")`;
   const t = useTrans('title.');
@@ -47,12 +43,7 @@ export default function Title() {
       <div
         className="title__enter-game-target"
         onClick={() => {
-          playBgm(GUIState.titleBgm);
           dispatch(setVisibility({ component: 'isEnterGame', visibility: true }));
-          if (fullScreen === fullScreenOption.on) {
-            document.documentElement.requestFullscreen();
-            if (keyboard) keyboard.lock(['Escape', 'F11']);
-          }
         }}
         onMouseEnter={playSeEnter}
       />
@@ -66,10 +57,10 @@ export default function Title() {
         >
           <div className={applyStyle('Title_buttonList', styles.Title_buttonList)}>
             <div
+              data-recourse-start
               className={applyStyle('Title_button', styles.Title_button)}
               onClick={() => {
                 startGame();
-                playSeClick();
               }}
               onMouseEnter={playSeEnter}
             >

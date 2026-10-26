@@ -23,7 +23,7 @@ const initState: IGuiState = {
   showTextBox: true,
   showControls: true,
   controlsVisibility: true,
-  currentMenuTag: MenuPanelTag.Option,
+  currentMenuTag: MenuPanelTag.Load,
   titleBg: '',
   titleBgm: '',
   logoImage: [],

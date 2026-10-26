@@ -2,21 +2,6 @@
 
 @import 'Core/util/constants';
 
-@font-face {
-  font-family: '资源圆体';
-  src: url('assets/fonts/ResourceHanRoundedCN-Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: '思源宋体';
-  src: url('assets/fonts/SourceHanSerifCN-Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'WebgalUI';
-  src: url('assets/fonts/OPPOSans-R.ttf') format('truetype');
-}
-
 a {
   transition: color 1s;
 }
@@ -41,7 +26,7 @@ body {
   background-color: #000;
   font-size: 16px;
   margin: 0;
-  font-family: 'WebgalUI', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
     'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

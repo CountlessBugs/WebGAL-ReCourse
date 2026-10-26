@@ -147,4 +147,4 @@ export function getPerforms(): string[] {
   return [...performs.keys()];
 }
 
-import('./initRegister');
+if (!window.recoursePreviewOrigin) import('./initRegister');

@@ -11,6 +11,17 @@ import { initReactI18next, Trans } from 'react-i18next';
 import { defaultLanguage, i18nTranslationResources, language } from './config/language';
 import { Provider } from 'react-redux';
 import { webgalStore } from './store/store';
+import { installCourseSettings } from './recourse/settings';
+import { startSettingsPreview } from './recourse/preview';
+import SceneParser from 'webgal-parser';
+import { assetSetter } from './Core/util/gameAssetsAccess/assetSetter';
+import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from './Core/parser/sceneParser';
+
+export { WebGAL } from './Core/WebGAL';
+export const recourseRuntime = { version: '4.6.6-recourse.1', upstream: '4.6.6', apiVersion: 1 };
+export function parseCourseScene(text: string, url: string) {
+  return new SceneParser(() => {}, assetSetter, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG).parse(text, url, url);
+}
 
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
@@ -29,13 +40,18 @@ i18n
   .then(() => console.log('WebGAL i18n Ready!'));
 
 // eslint-disable-next-line react/no-deprecated
-ReactDOM.render(
-  <StrictMode>
-    <Trans>
-      <Provider store={webgalStore}>
-        <App />
-      </Provider>
-    </Trans>
-  </StrictMode>,
-  document.querySelector('#root'),
-);
+if (window.recoursePreviewOrigin) {
+  startSettingsPreview();
+} else {
+  installCourseSettings();
+  ReactDOM.render(
+    <StrictMode>
+      <Trans>
+        <Provider store={webgalStore}>
+          <App />
+        </Provider>
+      </Trans>
+    </StrictMode>,
+    document.querySelector('#root'),
+  );
+}

@@ -23,9 +23,9 @@ export const TextPreview = (props: any) => {
   const userAgent = navigator.userAgent;
   const isFirefox = /firefox/i.test(userAgent);
   const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-  const previewText = t('textPreview.text');
+  const previewText = props.text ?? t('textPreview.text');
   const previewTextArray = compileSentence(previewText, 3);
-  const showNameText = t('textPreview.title');
+  const showNameText = props.title ?? t('textPreview.title');
   const showNameArray = compileSentence(showNameText, 3);
   const isHasName = showNameText !== '';
 

@@ -29,6 +29,10 @@ export default defineConfig({
     global: 'globalThis',
   },
   build: {
-    // sourcemap: true,
+    rollupOptions: {
+      input: { index: resolve('index.html'), recourse: resolve('src/main.tsx') },
+      preserveEntrySignatures: 'strict',
+      output: { entryFileNames: (chunk) => chunk.name === 'recourse' ? 'assets/recourse.js' : 'assets/[name]-[hash].js' },
+    },
   },
 });
