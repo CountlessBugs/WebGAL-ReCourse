@@ -19,6 +19,9 @@ export class AssetManager {
   private future = new Set<string>();
   private queue: ResourceRequest[] = [];
   private running = false;
+  private activeLoads = 0;
+  private drainResolver?: () => void;
+  private failures = new Set<string>();
   private renderer?: Renderer;
   private contextVersion = 0;
   private lastTouch = -Infinity;
@@ -69,12 +72,27 @@ export class AssetManager {
     if (entry.ready) return entry.resource!.value as T;
     const current = entry;
     current.loading = true;
-    current.operation = this.load(current).finally(() => {
-      current.operation = undefined;
-      current.loading = false;
-      queueMicrotask(() => this.collect());
-    });
+    current.operation = this.load(current)
+      .then(
+        (value) => {
+          this.failures.delete(key);
+          return value;
+        },
+        (error) => {
+          this.failures.add(key);
+          throw error;
+        },
+      )
+      .finally(() => {
+        current.operation = undefined;
+        current.loading = false;
+        queueMicrotask(() => this.collect());
+      });
     return (await current.operation) as T;
+  }
+
+  public hasFailed(url: string): boolean {
+    return this.failures.has(`texture:${resourceUrl(url)}`);
   }
 
   private async load(entry: ResourceEntry) {
@@ -145,18 +163,29 @@ export class AssetManager {
     if (this.running) return;
     this.running = true;
     try {
-      while (this.queue.length) {
-        const request = this.queue.shift()!;
-        try {
-          await this.ensureReady(request);
-        } catch (error) {
-          logger.warn(`预加载失败，显示时允许重试：${request.url}`, error);
-        }
-        this.collect();
-      }
+      await new Promise<void>((resolve) => {
+        this.drainResolver = resolve;
+        this.startQueued();
+      });
     } finally {
+      this.drainResolver = undefined;
       this.running = false;
     }
+  }
+
+  private startQueued() {
+    while (this.activeLoads < 4 && this.queue.length > 0) {
+      const request = this.queue.shift()!;
+      this.activeLoads += 1;
+      void this.ensureReady(request)
+        .catch((error) => logger.warn(`预加载失败，显示时允许重试：${request.url}`, error))
+        .finally(() => {
+          this.activeLoads -= 1;
+          this.collect();
+          this.startQueued();
+        });
+    }
+    if (this.activeLoads === 0 && this.queue.length === 0) this.drainResolver?.();
   }
 
   /** 只保护仍被持有的纹理，不关闭其他 Pixi 资源的自动 GC。 */
