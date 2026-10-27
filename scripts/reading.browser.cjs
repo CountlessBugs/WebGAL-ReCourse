@@ -47,7 +47,7 @@ function pdfDocument(count) {
       const order = [{ file_id: 'a', page_range: [2, 3] }, { file_id: 'b', page_range: [1, 1] }];
       const raw = [`readingOrder:${JSON.stringify(order)};`, 'changeFigure:stand.webp -left -next;', 'readingNext:;', '老师:第一张原页的陪伴台词;',
         'readingJump:a -page=10;', 'readingNext:;', 'readingReturn:;', 'readingNext:;', 'readingNext:;', '老师:文本原文已展示;'].join('\n');
-      const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'script', speaker: '老师', figure_names: ['stand.webp'],
+      const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'script', speaker: '老师',
         main_pages: [{ file_id: 'a', original_page: 2 }, { file_id: 'a', original_page: 3 }, { file_id: 'b', original_page: 1 }],
         reference_files: [{ file_id: 'a', original_name: '原始 PDF', format: 'pdf', page_count: 20 },
           { file_id: 'b', original_name: '原始 TXT', format: 'txt', page_count: 1 }] };
@@ -123,7 +123,7 @@ function pdfDocument(count) {
         'choose:查看旁支:A|另一旁支:B;', 'label:A;', 'readingNext:;', 'readingJump:a -page=10;', '老师:旁支原页;',
         'jumpLabel:merge;', 'label:B;', 'readingJump:a -page=12;', '老师:另一旁支;', 'label:merge;', '老师:合流主线;', 'readingNext:;'].join('\n');
       const actions = [null, 'main_next', null, null, null, 'local_next', 'jump', null, null, null, 'jump', null, null, null, 'main_next'];
-      const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'branch-script', speaker: '老师', figure_names: [],
+      const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'branch-script', speaker: '老师',
         main_pages: [{ file_id: 'a', original_page: 2 }, { file_id: 'a', original_page: 3 }],
         reference_files: [{ file_id: 'a', original_name: '原始 PDF', format: 'pdf', page_count: 20 }] };
       main.WebGAL.sceneManager.sceneData.currentScene = main.parseCourseScene(raw, '/branch.txt');
@@ -148,7 +148,7 @@ function pdfDocument(count) {
       main.WebGAL.sceneManager.sceneData.currentSentenceId = 0;
       stage.stageStateManager.replaceAllStageState(stage.initState);
       main.configureGuidedReading({ fileBaseUrl: '/reading/files/', plan: { version: 1, run_id: 42, reading_plan_id: 'empty', script_revision: 'empty',
-        speaker: '老师', figure_names: [], main_pages: [{ file_id: 'a', original_page: 2 }],
+        speaker: '老师', main_pages: [{ file_id: 'a', original_page: 2 }],
         reference_files: [{ file_id: 'a', original_name: '原始 PDF', format: 'pdf', page_count: 20 }] },
       analysis: { version: 1, reading_plan_id: 'empty', script_revision: 'empty', branches: [],
         nodes: [null, 'jump', 'return', 'main_next'].map((action, line) => ({ id: `empty.txt:${line}`, scene: 'empty.txt', line, action,
@@ -177,7 +177,7 @@ function pdfDocument(count) {
         for (const component of ['showBacklog', 'showChoose', 'showMenuPanel'])
           store.webgalStore.dispatch(gui.setVisibility({ component, visibility: false }));
         main.configureGuidedReading({ fileBaseUrl: '/reading/files/', plan: { version: 1, run_id: 42,
-          reading_plan_id: mode, script_revision: mode, speaker: '老师', figure_names: [],
+          reading_plan_id: mode, script_revision: mode, speaker: '老师',
           main_pages: [2, 3, 4].map((original_page) => ({ file_id: 'a', original_page })),
           reference_files: [{ file_id: 'a', original_name: '原始 PDF', format: 'pdf', page_count: 20 }] },
         analysis: { version: 1, reading_plan_id: mode, script_revision: mode, branches: [],

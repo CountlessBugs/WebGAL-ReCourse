@@ -45,8 +45,6 @@ export function changeFigure(sentence: ISentence): IPerform {
   const isFreeFigure = key ? true : false;
   const id = key ? key : `fig-${pos}`;
   if (reading) {
-    const asset = decodeURIComponent(content.split('/').pop() ?? '');
-    if (content && !reading.plan.figure_names.includes(asset)) throw new Error('reading.figure_invalid');
     for (const figure of Object.values(figureStateKeyByPosition)) {
       if (figure !== 'figNameRight') stageStateManager.setStage(figure, '');
     }

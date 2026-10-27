@@ -7,7 +7,7 @@ export interface ReadingFile {
 }
 export interface ReadingPlan {
   version: 1; run_id: number; reading_plan_id: string; script_revision: string;
-  main_pages: ReadingPage[]; reference_files: ReadingFile[]; speaker: string; figure_names: string[];
+  main_pages: ReadingPage[]; reference_files: ReadingFile[]; speaker: string;
 }
 export type ReadingAction = 'main_next' | 'local_next' | 'excursion_next' | 'jump' | 'return';
 export interface ReadingNode {

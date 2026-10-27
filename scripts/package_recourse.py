@@ -9,7 +9,7 @@ import subprocess
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "4.6.6-recourse.2"
+VERSION = "4.6.6-recourse.3"
 
 
 def main():

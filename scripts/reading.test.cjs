@@ -16,7 +16,7 @@ function load(name, imports = {}, globals = {}) {
 }
 const model = load('recourse/reading/model.ts');
 const { commandType } = load('Core/controller/scene/sceneInterface.ts');
-const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'revision', speaker: '老师', figure_names: ['teacher.webp'],
+const plan = { version: 1, run_id: 42, reading_plan_id: 'plan', script_revision: 'revision', speaker: '老师',
   main_pages: [{ file_id: 'a', original_page: 2 }, { file_id: 'a', original_page: 3 }, { file_id: 'b', original_page: 1 }],
   reference_files: [{ file_id: 'a', original_name: 'PDF', format: 'pdf', page_count: 20 },
     { file_id: 'b', original_name: 'TXT', format: 'txt', page_count: 1 }] };
@@ -99,6 +99,71 @@ function engine(scripts, actions, guided = true) {
   return { ...executor, runtime, WebGAL, stageStateManager, get stage() { return stage; }, history, reads, errors };
 }
 const sentence = (commandRaw, content = '', args = []) => ({ commandRaw, command: commandType[commandRaw], content, args });
+
+function figureEngine(guided = true) {
+  const figureStateKeyByPosition = { center: 'figName', left: 'figNameLeft', right: 'figNameRight',
+    left13: 'figNameLeft13', right13: 'figNameRight13', left14: 'figNameLeft14', right14: 'figNameRight14' };
+  const stage = { ...Object.fromEntries(Object.values(figureStateKeyByPosition).map((key) => [key, ''])),
+    freeFigure: [], live2dMotion: [], animationSettings: [] };
+  const transforms = [];
+  const stageStateManager = { getCalculationStageState: () => stage, setStage: (key, value) => stage[key] = value,
+    removeEffectByTargetId() {}, removeAnimationSettingsByTarget() {}, updateAnimationSettings() {},
+    setLive2dMotion() {}, setLive2dExpression() {}, setLive2dBlink() {}, setLive2dFocus() {}, setFigureMetaData() {},
+    setFreeFigureByKey: (value) => {
+      stage.freeFigure = [...stage.freeFigure.filter((item) => item.key !== value.key), value];
+    } };
+  const arg = (script, key) => script.args.find((item) => item.key === key)?.value ?? null;
+  const change = load('Core/gameScripts/changeFigure.ts', {
+    'lodash/cloneDeep': { default: copy }, 'lodash/isEqual': { default: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
+    '@/Core/util/getSentenceArg': { getBooleanArgByKey: arg, getNumberArgByKey: arg, getStringArgByKey: arg,
+      getFigurePositionFromArgs: (script) => Object.keys(figureStateKeyByPosition).find((key) => arg(script, key)) ?? '' },
+    '@/Core/Modules/stage/stageInterface': { figureStateKeyByPosition, normalizeFigureBounds: (value) => value },
+    '@/Core/controller/stage/pixi/animations/generateTransformAnimationObj': {
+      generateTransformAnimationObj: (_key, frame) => { transforms.push(copy(frame)); return [{}]; } },
+    '@/Core/controller/stage/pixi/animations/timeline': { generateTimelineObj() {} },
+    '@/Core/util/logger': { logger: { error() {} } },
+    '@/Core/Modules/animationFunctions': { applyAnimationEndState() {}, getAnimateDuration: () => 0 },
+    '@/Core/WebGAL': { WebGAL: { gameplay: { performController: { unmountPerform() {} } }, animationManager: { addAnimation() {} } } },
+    '@/Core/live2DCore': { baseBlinkParam: {}, baseFocusParam: {} },
+    '../constants': { DEFAULT_FIG_IN_DURATION: 300, DEFAULT_FIG_OUT_DURATION: 300, WEBGAL_NONE: 'none' },
+    '@/Core/Modules/stage/stageStateManager': { stageStateManager },
+    './parseTransformFrame': { parseTransformFrame: JSON.parse }, './figureAssociatedAnimation': { setFigureAssociatedAnimation() {} },
+    '@/recourse/reading/runtime': { getReadingConfiguration: () => guided ? { plan } : null },
+  }).changeFigure;
+  return { stage, transforms, change, figureStateKeyByPosition };
+}
+
+test('不同角色立绘依次替换右侧单槽，位置和自由 ID 不引入额外在场角色', () => {
+  const { stage, transforms, change, figureStateKeyByPosition } = figureEngine();
+  stage.figNameLeft = 'previous-left.webp'; stage.figName = 'previous-center.webp';
+  stage.freeFigure = [{ key: 'previous', name: 'previous-free.webp' }];
+  for (const [name, position, id] of [['teacher.webp', 'left', 'teacher'], ['student.webp', 'center', 'student']]) {
+    change(sentence('changeFigure', name, [{ key: position, value: true }, { key: 'id', value: id },
+      { key: 'transform', value: JSON.stringify({ position: { x: 123, y: 456 }, scale: { x: 1.2, y: 1.2 } }) }]));
+    assert.equal(stage.figNameRight, name);
+    assert.deepEqual(Object.values(figureStateKeyByPosition).map((key) => stage[key]).filter(Boolean), [name]);
+    assert.equal(stage.freeFigure.length, 0);
+    assert.equal(transforms.at(-1).position, undefined);
+    assert.deepEqual(transforms.at(-1).scale, { x: 1.2, y: 1.2 });
+  }
+  for (const [content, args] of [['none', []], ['', []], ['teacher.webp', [{ key: 'clear', value: true }]]]) {
+    change(sentence('changeFigure', 'student.webp'));
+    change(sentence('changeFigure', content, args));
+    assert.equal(Object.values(figureStateKeyByPosition).some((key) => stage[key]), false);
+    assert.equal(stage.freeFigure.length, 0);
+  }
+});
+
+test('普通模式保持位置槽、自由立绘及变换原有语义', () => {
+  const { stage, transforms, change } = figureEngine(false);
+  change(sentence('changeFigure', 'teacher.webp', [{ key: 'left', value: true }]));
+  change(sentence('changeFigure', 'student.webp', [{ key: 'right', value: true }, { key: 'id', value: 'student' },
+    { key: 'transform', value: '{"position":{"x":123,"y":456}}' }]));
+  assert.equal(stage.figNameLeft, 'teacher.webp');
+  assert.deepEqual(copy(stage.freeFigure), [{ key: 'student', name: 'student.webp', basePosition: 'right' }]);
+  assert.deepEqual(transforms.at(-1).position, { x: 123, y: 456 });
+});
+
 test('一次推进至多一个页面加相邻台词；页面空栏快照和台词快照独立', () => {
   const e = engine([sentence('readingNext'), sentence('say', '原页陪伴'), sentence('readingNext')], ['main_next', null, 'main_next']);
   e.scriptExecutor();
