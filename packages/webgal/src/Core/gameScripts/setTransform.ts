@@ -15,6 +15,7 @@ import { applyAnimationEndState, getAnimateDuration } from '../Modules/animation
 import { v4 as uuid } from 'uuid';
 import { generateTimelineObj } from '@/Core/controller/stage/pixi/animations/timeline';
 import { parseSetTransformFrame } from './parseTransformFrame';
+import { isGuidedReading } from '@/recourse/reading/runtime';
 /**
  * 设置变换
  * @param sentence
@@ -26,7 +27,9 @@ export const setTransform = (sentence: ISentence): IPerform => {
 
   const duration = getNumberArgByKey(sentence, 'duration') ?? 500;
   const ease = getStringArgByKey(sentence, 'ease') ?? '';
-  const target = getStringArgByKey(sentence, 'target') ?? '0';
+  const requestedTarget = getStringArgByKey(sentence, 'target') ?? '0';
+  const guidedFigure = isGuidedReading() && ['0', 'fig-center', 'fig-left', 'fig-right'].includes(requestedTarget);
+  const target = guidedFigure ? 'fig-right' : requestedTarget;
   const keep = getBooleanArgByKey(sentence, 'keep') ?? false;
   const parallel = getBooleanArgByKey(sentence, 'parallel') ?? false;
   const { writeDefault, writeFullEffect } = resolveTransformArgs(sentence, parallel);
@@ -37,6 +40,7 @@ export const setTransform = (sentence: ISentence): IPerform => {
   if (!parallel) WebGAL.gameplay.performController.unmountPerform(performInitName, true);
 
   const frame = parseSetTransformFrame(animationString);
+  if (frame && guidedFigure) delete frame.position;
   if (frame) {
     animationObj = generateTransformAnimationObj(target, frame, duration, ease, writeFullEffect);
   } else {

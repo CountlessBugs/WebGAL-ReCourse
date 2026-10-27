@@ -1,0 +1,54 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.panel {
+  position: absolute;
+  left: 3%;
+  top: 3%;
+  bottom: 34%;
+  width: 62%;
+  // The panel follows FullScreenClick at the same layer; native choices remain above both.
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  color: #20212a;
+  background: #f3f1eb;
+  border: 2px solid #d9d4c7;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px #0005;
+  font: 22px/1.5 system-ui, sans-serif;
+  user-select: text;
+  &.expanded { width: 94%; bottom: 5%; }
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #d9d4c7;
+  flex-shrink: 0;
+  span:first-child { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  button { font: inherit; color: inherit; background: #fff; border: 1px solid #aaa; border-radius: 6px; padding: 2px 12px; cursor: pointer; }
+  button:disabled { opacity: 0.4; }
+}
+.viewport { flex: 1; overflow: auto; padding: 20px; overscroll-behavior: contain; min-height: 0; }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; margin: 0; }
+.pdfPage { position: relative; margin: 0 auto; background: white; }
+.status, .error { padding: 8px 18px; }
+.error { color: #a51d23; }
+/* Text selection geometry follows PDF.js TextLayer (Apache-2.0), scoped to this panel. */
+.textLayer {
+  position: absolute; inset: 0; overflow: clip; line-height: 1; text-align: initial;
+  letter-spacing: normal; word-spacing: normal; transform-origin: 0 0;
+  text-size-adjust: none; forced-color-adjust: none;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+  :is(span, br) { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; user-select: text; }
+  > :not(:global(.markedContent)), :global(.markedContent) span:not(:global(.markedContent)) {
+    --font-height: 0; --scale-x: 1; --rotate: 0deg;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+  }
+  :global(.markedContent) { display: contents; }
+  ::selection { background: #4e8bff66; }
+}

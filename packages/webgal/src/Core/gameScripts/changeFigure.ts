@@ -20,12 +20,14 @@ import { DEFAULT_FIG_IN_DURATION, DEFAULT_FIG_OUT_DURATION, WEBGAL_NONE } from '
 import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
 import { parseTransformFrame } from './parseTransformFrame';
 import { setFigureAssociatedAnimation } from './figureAssociatedAnimation';
+import { getReadingConfiguration } from '@/recourse/reading/runtime';
 /**
  * 更改立绘
  * @param sentence 语句
  */
 // eslint-disable-next-line complexity
 export function changeFigure(sentence: ISentence): IPerform {
+  const reading = getReadingConfiguration();
   // 语句内容
   let content = sentence.content;
   if (content === WEBGAL_NONE) {
@@ -36,12 +38,20 @@ export function changeFigure(sentence: ISentence): IPerform {
   }
 
   // 根据参数设置指定位置
-  const pos = getFigurePositionFromArgs(sentence) || 'center';
+  const pos = reading ? 'right' : getFigurePositionFromArgs(sentence) || 'center';
 
   // id 与 自由立绘
-  let key = getStringArgByKey(sentence, 'id') ?? '';
+  let key = reading ? '' : getStringArgByKey(sentence, 'id') ?? '';
   const isFreeFigure = key ? true : false;
   const id = key ? key : `fig-${pos}`;
+  if (reading) {
+    const asset = decodeURIComponent(content.split('/').pop() ?? '');
+    if (content && !reading.plan.figure_names.includes(asset)) throw new Error('reading.figure_invalid');
+    for (const figure of Object.values(figureStateKeyByPosition)) {
+      if (figure !== 'figNameRight') stageStateManager.setStage(figure, '');
+    }
+    stageStateManager.setStage('freeFigure', []);
+  }
 
   // live2d 或 spine 相关
   let motion = getStringArgByKey(sentence, 'motion') ?? '';
@@ -132,6 +142,7 @@ export function changeFigure(sentence: ISentence): IPerform {
     }
 
     function applyTransform(frame: AnimationFrame) {
+      if (reading) delete frame.position;
       animationObj = generateTransformAnimationObj(key, frame, duration, ease, !ignoreDefault);
       // 因为是切换，必须把一开始的 alpha 改为 0
       animationObj[0].alpha = 0;
