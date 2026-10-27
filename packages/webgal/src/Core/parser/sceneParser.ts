@@ -39,8 +39,13 @@ import { showVars } from '../gameScripts/showVars';
 import { defineScripts, IConfigInterface, ScriptConfig, ScriptFunction, scriptRegistry } from './utils';
 import { applyStyle } from '@/Core/gameScripts/applyStyle';
 import { wait } from '@/Core/gameScripts/wait';
+import { readingCommand } from '@/recourse/reading/runtime';
 
 export const SCRIPT_TAG_MAP = defineScripts({
+  readingOrder: ScriptConfig(commandType.readingOrder, readingCommand, { next: true }),
+  readingNext: ScriptConfig(commandType.readingNext, readingCommand),
+  readingJump: ScriptConfig(commandType.readingJump, readingCommand),
+  readingReturn: ScriptConfig(commandType.readingReturn, readingCommand),
   say: ScriptConfig(commandType.say, say),
   changeBg: ScriptConfig(commandType.changeBg, changeBg),
   changeFigure: ScriptConfig(commandType.changeFigure, changeFigure),

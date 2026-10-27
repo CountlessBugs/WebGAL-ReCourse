@@ -18,7 +18,8 @@ import { assetSetter } from './Core/util/gameAssetsAccess/assetSetter';
 import { ADD_NEXT_ARG_LIST, SCRIPT_CONFIG } from './Core/parser/sceneParser';
 
 export { WebGAL } from './Core/WebGAL';
-export const recourseRuntime = { version: '4.6.6-recourse.1', upstream: '4.6.6', apiVersion: 1 };
+export const recourseRuntime = { version: '4.6.6-recourse.3', upstream: '4.6.6', apiVersion: 1 };
+export { configureGuidedReading, getReadingContext } from './recourse/reading/runtime';
 export function parseCourseScene(text: string, url: string) {
   return new SceneParser(() => {}, assetSetter, ADD_NEXT_ARG_LIST, SCRIPT_CONFIG).parse(text, url, url);
 }

@@ -11,6 +11,7 @@ import { compileSentence, EnhancedNode } from '@/Stage/TextBox/TextBox';
 import useSoundEffect from '@/hooks/useSoundEffect';
 import { WebGAL } from '@/Core/WebGAL';
 import { stopAuto } from '@/Core/controller/gamePlay/autoPlay';
+import { getReadingConfiguration } from '@/recourse/reading/runtime';
 
 export const Backlog = () => {
   const t = useTrans('gaming.');
@@ -63,6 +64,13 @@ export const Backlog = () => {
     for (let i = 0; i < Math.min(current_backlog_len, limit); i++) {
       const indexOfBacklog = current_backlog_len - i - 1;
       const backlogItem = WebGAL.backlogManager.getBacklog()[indexOfBacklog];
+      const reading = backlogItem.currentStageState.reading;
+      const pageEvent = reading?.event_cursor?.kind;
+      const readingFile = getReadingConfiguration()?.plan.reference_files.find((file) => file.file_id === reading?.display_page?.file_id);
+      const pageLabel = reading?.display_page
+        ? `${readingFile?.original_name ?? reading.display_page.file_id} · 原件第 ${reading.display_page.original_page} 页`
+        : '尚未展示资料';
+      const actionLabel = pageEvent === 'next' ? '下一页' : pageEvent === 'jump' ? '跳转页码' : '返回';
       const showTextArray = compileSentence(backlogItem.currentStageState.showText, 3, true, false);
       const showTextArray2 = showTextArray.map((line) => {
         return line.map((c) => {
@@ -108,7 +116,7 @@ export const Backlog = () => {
           className={styles.backlog_item}
           id={`backlog_item_${i}`}
           style={{ animationDelay: `${20 * ((i - 1) % 20)}ms` }}
-          key={'backlogItem' + backlogItem.currentStageState.showText + backlogItem.saveScene.currentSentenceId}
+          key={'backlogItem' + indexOfBacklog + (reading?.event_cursor?.event_id ?? '') + backlogItem.saveScene.currentSentenceId}
         >
           <div className={styles.backlog_func_area}>
             <div className={styles.backlog_item_button_list}>
@@ -160,10 +168,10 @@ export const Backlog = () => {
                 </div>
               ) : null}
             </div>
-            <div className={styles.backlog_item_content_name}>{nameElementList}</div>
+            <div className={styles.backlog_item_content_name}>{pageEvent ? actionLabel : nameElementList}</div>
           </div>
           <div className={styles.backlog_item_content}>
-            <span className={styles.backlog_item_content_text}>{showTextElementList}</span>
+            <span className={styles.backlog_item_content_text}>{pageEvent ? pageLabel : showTextElementList}</span>
           </div>
           <audio id={'backlog_audio_play_element_' + indexOfBacklog} src={backlogItem.currentStageState.vocal} />
         </div>

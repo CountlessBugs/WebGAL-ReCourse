@@ -11,6 +11,8 @@ import { setEbg } from '@/Core/gameScripts/changeBg/setEbg';
 
 import { WebGAL } from '@/Core/WebGAL';
 import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
+import { assertReadingRestore, isGuidedReading, reportReadingError } from '@/recourse/reading/runtime';
+import { restoreReadingSnapshot } from '@/recourse/reading/restore';
 
 /**
  * 读取游戏存档
@@ -31,6 +33,21 @@ export function loadGameFromStageData(stageData: ISaveData) {
     return;
   }
   const loadFile = stageData;
+  if (isGuidedReading() || loadFile.nowStageState.reading) {
+    try {
+      for (const item of loadFile.backlog) assertReadingRestore(item.currentStageState.reading);
+    } catch (error) { reportReadingError(error); return; }
+    restoreReadingSnapshot(loadFile.nowStageState, loadFile.sceneData, () => {
+      WebGAL.backlogManager.getBacklog().splice(0, WebGAL.backlogManager.getBacklog().length,
+        ...cloneDeep(loadFile.backlog));
+      restorePerform(true);
+      const dispatch = webgalStore.dispatch;
+      dispatch(setVisibility({ component: 'showTitle', visibility: false }));
+      dispatch(setVisibility({ component: 'showMenuPanel', visibility: false }));
+      setEbg(loadFile.nowStageState.bgName, 0);
+    });
+    return;
+  }
   // 重新获取并同步场景状态
   sceneFetcher(loadFile.sceneData.sceneUrl).then((rawScene) => {
     WebGAL.sceneManager.sceneData.currentScene = sceneParser(

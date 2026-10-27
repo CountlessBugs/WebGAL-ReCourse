@@ -38,6 +38,7 @@ export interface IResolvedStageCommitOptions {
 type StageCommitHandler = (stageState: IStageState, options: IResolvedStageCommitOptions) => void;
 
 export const initState: IStageState = {
+  reading: null,
   oldBgName: '',
   bgName: '',
   figName: '',

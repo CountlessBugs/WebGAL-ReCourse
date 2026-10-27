@@ -1,6 +1,7 @@
 import { ISentence } from '@/Core/controller/scene/sceneInterface';
 import { BlinkParam, FocusParam } from '@/Core/live2DCore';
 import type { Transform } from '@/types/editorPreviewProtocol';
+import type { ReadingState } from '@/recourse/reading/model';
 
 /**
  * 游戏内变量
@@ -214,6 +215,7 @@ type figureMetaData = Record<string, IFigureMetadata>;
  * @interface IStageState 游戏舞台数据接口
  */
 export interface IStageState {
+  reading: ReadingState | null;
   oldBgName: string; // 旧背景的文件路径
   bgName: string; // 背景文件地址（相对或绝对）
   figName: string; // 立绘_中 文件地址（相对或绝对）

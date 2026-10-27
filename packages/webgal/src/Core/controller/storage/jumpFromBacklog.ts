@@ -15,6 +15,8 @@ import { getBooleanArgByKey } from '@/Core/util/getSentenceArg';
 import { createSayPerform } from '@/Core/gameScripts/say/createSayPerform';
 import { parseTempAnimation } from '@/Core/gameScripts/setTempAnimation';
 import { isRelativeAnimation } from '@/Core/Modules/animationFunctions';
+import { isGuidedReading, isReadingEvent } from '@/recourse/reading/runtime';
+import { restoreReadingSnapshot } from '@/recourse/reading/restore';
 
 /**
  * 恢复演出的方式：
@@ -28,6 +30,7 @@ type RestoreMode = 'rerun' | 'rebuildSayPerform' | 'skip';
  * 需要特殊处理的语句，以及如何处理。不在表中的语句按 rerun 处理
  */
 const specialRestoreScripts: Array<{ isMatch: (script: ISentence) => boolean; mode: RestoreMode }> = [
+  { isMatch: (script) => isReadingEvent(script) || script.commandRaw === 'readingOrder', mode: 'skip' },
   // 正文和分段已经在存档中，只重建演出，不能重跑 say 再追加一次 concat
   {
     isMatch: (script) => script.command === commandType.say,
@@ -89,6 +92,17 @@ export const jumpFromBacklog = (index: number, refetchScene = true) => {
   const dispatch = webgalStore.dispatch;
   // 获得存档文件
   const backlogFile = WebGAL.backlogManager.getBacklog()[index];
+  if (isGuidedReading() || backlogFile.currentStageState.reading) {
+    restoreReadingSnapshot(backlogFile.currentStageState, backlogFile.saveScene, () => {
+      WebGAL.backlogManager.getBacklog().splice(index + 1);
+      WebGAL.backlogManager.isSaveBacklogNext = true;
+      restorePerform();
+      dispatch(setVisibility({ component: 'showBacklog', visibility: false }));
+      dispatch(setVisibility({ component: 'showTextBox', visibility: true }));
+      WebGAL.gameplay.pixiStage?.requestRender();
+    }, refetchScene);
+    return;
+  }
   logger.debug('读取的backlog数据', backlogFile);
   // 重新获取并同步场景状态
   if (refetchScene)

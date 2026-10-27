@@ -9,6 +9,7 @@ import { WebGAL } from '@/Core/WebGAL';
 import { saveActions } from '@/store/savesReducer';
 import { dumpSavesToStorage } from '@/Core/controller/storage/savesController';
 import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
+import { assertReadingRestore } from '@/recourse/reading/runtime';
 
 /**
  * 保存游戏
@@ -31,6 +32,7 @@ export const saveGame = (index: number) => {
  */
 export function generateCurrentStageData(index: number, isSavePreviewImage = true) {
   const stageState = stageStateManager.getCalculationStageState();
+  assertReadingRestore(stageState.reading);
   const saveBacklog = cloneDeep(WebGAL.backlogManager.getBacklog());
 
   /**

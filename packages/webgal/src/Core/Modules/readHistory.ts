@@ -7,6 +7,7 @@ import { SceneManager } from './scene';
 import { setReadHistory } from '@/store/userDataReducer';
 import { setStorage } from '../controller/storage/storageController';
 import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
+import { getReadingConfiguration } from '@/recourse/reading/runtime';
 
 let debugTextReadMode: boolean | null = null;
 
@@ -85,7 +86,7 @@ export class ReadHistoryManager {
   }
 
   private addReadHistory() {
-    const scenarioName = this.sceneManager.sceneData.currentScene.sceneName;
+    const scenarioName = this.sceneHistoryKey();
     const index = this.sceneManager.sceneData.currentSentenceId;
 
     if (!this.history.has(scenarioName)) {
@@ -112,7 +113,7 @@ export class ReadHistoryManager {
   public checkIsRead() {
     this.checkLoad();
 
-    const scenarioName = this.sceneManager.sceneData.currentScene.sceneName;
+    const scenarioName = this.sceneHistoryKey();
     const index = this.sceneManager.sceneData.currentSentenceId;
 
     let isRead = false;
@@ -124,5 +125,11 @@ export class ReadHistoryManager {
     if (!isRead) {
       this.addReadHistory();
     }
+  }
+
+  private sceneHistoryKey() {
+    const plan = getReadingConfiguration()?.plan;
+    const scene = this.sceneManager.sceneData.currentScene.sceneName;
+    return plan ? `reading:${plan.run_id}:${plan.reading_plan_id}:${plan.script_revision}:${scene}` : scene;
   }
 }
