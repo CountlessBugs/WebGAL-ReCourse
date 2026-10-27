@@ -4,6 +4,7 @@ import { webgalStore } from '@/store/store';
 
 import { WebGAL } from '@/Core/WebGAL';
 import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
+import { isReadingRestorePending } from '@/recourse/reading/runtime';
 
 /**
  * 执行一次推进前检查。
@@ -20,7 +21,7 @@ import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
  * @returns true 表示可以继续调用 forward/commitForward，也就是推进到下一条语句。
  */
 export const preForward = (continueAfterSettling = false) => {
-  if (WebGAL.sceneManager.lockSceneWrite) {
+  if (WebGAL.sceneManager.lockSceneWrite || isReadingRestorePending()) {
     logger.warn('next 被场景切换阻塞！');
     return false;
   }
@@ -62,7 +63,7 @@ export interface ForwardOptions {
 }
 
 export const forward = (options: ForwardOptions = {}) => {
-  if (WebGAL.sceneManager.lockSceneWrite) {
+  if (WebGAL.sceneManager.lockSceneWrite || isReadingRestorePending()) {
     logger.warn('forward 被场景切换阻塞！');
     return false;
   }

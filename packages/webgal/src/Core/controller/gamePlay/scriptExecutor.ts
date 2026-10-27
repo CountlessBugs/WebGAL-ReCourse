@@ -12,6 +12,7 @@ import { stageStateManager } from '@/Core/Modules/stage/stageStateManager';
 import { jumpToLabel } from '@/Core/gameScripts/label/jumpToLabel';
 import { prefetchCurrentSceneByProgress } from '@/Core/util/prefetcher/progressPrefetcher';
 import { WEBGAL_NONE } from '@/Core/constants';
+import { beforeReadingSentence, isGuidedReading, isReadingEvent } from '@/recourse/reading/runtime';
 
 const MAX_FORWARD_SCRIPT_EXECUTION = 1000;
 
@@ -22,6 +23,7 @@ export interface ScriptExecutionContext {
 
 export interface ScriptExecutionOptions {
   beforeSentenceExecute?: (context: ScriptExecutionContext) => void;
+  readingPageExecuted?: boolean;
 }
 
 export const whenChecker = (whenValue: string | undefined): boolean => {
@@ -65,6 +67,7 @@ export const scriptExecutor = (depth = 0, options: ScriptExecutionOptions = {}) 
     return;
   }
   const sentenceId = WebGAL.sceneManager.sceneData.currentSentenceId;
+  beforeReadingSentence();
   options.beforeSentenceExecute?.({
     sceneName: WebGAL.sceneManager.sceneData.currentScene.sceneName,
     sentenceId,
@@ -98,7 +101,8 @@ export const scriptExecutor = (depth = 0, options: ScriptExecutionOptions = {}) 
     });
   };
 
-  variableInterpolation();
+  // Restricted reading JSON and file identities are data, never variable templates.
+  if (!currentScript.commandRaw.startsWith('reading') || !isGuidedReading()) variableInterpolation();
   if (currentScript.content === WEBGAL_NONE) currentScript.content = '';
 
   // 判断这个脚本要不要执行
@@ -113,6 +117,7 @@ export const scriptExecutor = (depth = 0, options: ScriptExecutionOptions = {}) 
   if (!runThis) {
     logger.warn('不满足条件，跳过本句！');
     WebGAL.sceneManager.sceneData.currentSentenceId++;
+    if (options.readingPageExecuted) return;
     scriptExecutor(depth + 1, options);
     return;
   }
@@ -137,6 +142,14 @@ export const scriptExecutor = (depth = 0, options: ScriptExecutionOptions = {}) 
   // 检查当前对话是否有 notend 参数
   const hasNotEnd = getBooleanArgByKey(currentScript, 'notend') ?? false;
   isSaveBacklog = isSaveBacklog && !hasNotEnd;
+  const pageEvent = isReadingEvent(currentScript);
+  if (isGuidedReading()) {
+    if (currentScript.command === commandType.say) {
+      isNext = false;
+      isSaveBacklog = true;
+    }
+    if (pageEvent) isSaveBacklog = true;
+  }
 
   // 执行至指定 sentenceID
   // if (runToSentence >= 0 && runtime_currentSceneData.currentSentenceId < runToSentence) {
@@ -152,6 +165,16 @@ export const scriptExecutor = (depth = 0, options: ScriptExecutionOptions = {}) 
       WebGAL.backlogManager.saveCurrentStateToBacklog();
     }
   };
+
+  if (pageEvent) {
+    WebGAL.sceneManager.sceneData.currentSentenceId++;
+    saveBacklogIfNeeded(); // Empty page snapshot points immediately before the adjacent dialogue.
+    options.readingPageExecuted = true;
+    const following = WebGAL.sceneManager.sceneData.currentScene.sentenceList[WebGAL.sceneManager.sceneData.currentSentenceId];
+    if (following?.command === commandType.say && !hasPendingBlockingStateCalculationPerform)
+      scriptExecutor(depth + 1, options);
+    return;
+  }
 
   // 执行“下一句”。只有需要外部输入才能确定后续状态的演出，才会阻塞状态演算。
   if (isNext && !hasPendingBlockingStateCalculationPerform && !WebGAL.sceneManager.lockSceneWrite) {
