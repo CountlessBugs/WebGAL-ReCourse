@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "id": "recourse.webgal",
   "name": "WebGAL-ReCourse",
-  "version": "4.6.6-recourse.1",
+  "version": "4.6.6-recourse.2",
   "type": "custom",
   "webgalVersion": "4.6.6",
   "description": "基于 WebGAL 4.6.6 的 ReCourse 课程播放引擎",
